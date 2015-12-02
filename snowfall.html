@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Snowfall</title>
+</head>
+<body style="margin: 0; padding: 0; background: black;">
+<canvas id="canvas" width="1270" height="710"></canvas>
+<canvas id="background" width="1270" height="710" style="display: none"></canvas>
+<img id="imageBackground" src="./snowfall_background.png" style="display: none" />
+<script type="text/javascript">
+/* Initial setup of global variables */
+var ctx = document.getElementById("canvas").getContext("2d");
+var background = document.getElementById("background").getContext("2d");
+
+var width = ctx.canvas.width;
+var height = ctx.canvas.height;
+
+var counter = 1;
+var snowflakes = [];
+
+var foreImg;
+var backImg;
+var backImgData;
+var foreImgData;
+
+window.onload = function(){
+	/* Draw into the background image */
+	var img = document.getElementById("imageBackground");
+	background.drawImage(img, 0, 0);	
+	
+	/* Make two copies of the background pixels - one to draw the
+     * foreground onto, and one to make updates to the background */
+    foreImg = background.getImageData(0, 0, width, height);
+    backImg = background.getImageData(0, 0, width, height);
+	
+	foreImgData = foreImg.data;
+	backImgData = backImg.data;
+
+	/* Set the animation to run every 50 milliseconds (20 times per second) */
+	setInterval(animationTick, 50);
+}; /* End of window load event handler */
+
+
+/* The main animation loop */
+function animationTick(){
+    /* Make two copies of the background pixels - one to draw the
+     * foreground onto, and one to make updates to the background */
+    foreImg = background.getImageData(0, 0, width, height);
+    backImg = background.getImageData(0, 0, width, height);
+
+	foreImgData = foreImg.data;
+	backImgData = backImg.data;
+	
+	/* Copy the background to the foreground every frame */
+	/*for (var i = 0; i < backImg.data.length; i++) {
+		foreImgData[i] = backImgData[i];
+	}*/
+    
+    counter++;
+    if (counter >= 2) {
+        counter = 0;
+        
+        /* Create a new snowflake to add to the list */
+        var snowflake = {
+            x: (Math.random() * width),
+            y: 0,
+			/* velocity */
+            xVel: 0,
+            yVel: 1
+        };
+
+        snowflakes.push(snowflake);
+    }
+    
+    var i = 0;
+    /* Use a while loop instead of a for loop. That is because if an item
+     * needs to be removed from the list, we shuffle the last item into
+     * that empty slot, and need to re-process that slot again */
+    while(i < snowflakes.length) {
+        snowflake = snowflakes[i];
+                
+        /* Check if the snowflake is off the edge of the page */
+        if (snowflake.y > height) {
+            removeArrayItem(i, snowflakes);
+            continue;
+        }
+        
+        /* Check if the snowflake is about to hit something */
+        if (isObstacle(Math.round(snowflake.x + snowflake.xVel), 
+                       Math.round(snowflake.y + snowflake.yVel), 
+                       backImgData)) {
+            /* Check if we can continue moving by sliding to one side or 
+             * the other */
+            if (!isObstacle(Math.round(snowflake.x - 1),
+                            Math.round(snowflake.y + snowflake.yVel),
+                            backImgData)) {
+                /* Start sliding left */
+                snowflake.xVel = -1;
+				snowflake.yVel = 0.5;
+            } else if (!isObstacle(Math.round(snowflake.x + 1),
+                            Math.round(snowflake.y + snowflake.yVel),
+                            backImgData)) {
+                /* Start sliding right */
+                snowflake.xVel = 1;
+				snowflake.yVel = 0.5;
+            } else {
+                /* We are stuck. Permanently draw the snowflake 
+                 * into the background image (and into the foreground 
+                 * image for this time) */
+                drawSnowflake(Math.round(snowflake.x),
+                              Math.round(snowflake.y),
+                              backImg.data);
+                drawSnowflake(Math.round(snowflake.x),
+                              Math.round(snowflake.y),
+                              foreImgData);
+
+                /* Remove the snowflake from circulation */
+                removeArrayItem(i, snowflakes);
+                continue;
+            }
+        }
+
+        /* Animate the snowflake */
+        /* First, move the xvelocity towards 0 if it has changed */
+        if (snowflake.xVel > 0.1) {
+            snowflake.xVel -= 0.1;
+        } else if (snowflake.xVel < -0.1) {
+            snowflake.xVel += 0.1;
+        } else {
+			snowflake.xVel = 0;
+        }
+		
+		if (snowflake.yVel < 0.9) {
+			snowflake.yVel += 0.1;
+		} else {
+			snowflake.yVel = 1;
+		}
+        
+        /* Then, do the actual movement */
+        snowflake.x += snowflake.xVel;
+        snowflake.y += snowflake.yVel;
+
+        /* Make sure we aren't past the end of the array now if an 
+        item was removed */
+        if (i < snowflakes.length) {
+			drawSnowflake(Math.round(snowflake.x), 
+                          Math.round(snowflake.y), 
+                          foreImgData);
+        }
+            
+        i++;
+    }
+
+	/* Write the foreground image to the main drawing canvas context */    
+    ctx.putImageData(foreImg, 0, 0);
+	background.putImageData(backImg, 0, 0);
+}
+
+/* Draw a pixel in the image array */
+function drawPixel(x, y, R, G, B, A, data) {
+	if (x >= 0 && x < width && y >= 0 && y < height) {
+        /* Find index in pixel array */
+        var p = 4 * y * width + 4 * x;
+
+        /* Set RGBA to white */
+        data[p] = R;
+        data[p + 1] = G;
+        data[p + 2] = B;
+        data[p + 3] = A;  
+    }
+}
+
+function drawSnowflake(x, y, data){
+    drawPixel(x, y, 255, 255, 255, 255, data);
+    drawPixel(x-1, y, 210, 210, 210, 210, data);
+    drawPixel(x+1, y, 210, 210, 210, 210, data);
+    drawPixel(x, y-1, 210, 210, 210, 210, data);
+    drawPixel(x, y+1, 210, 210, 210, 210, data);
+}
+
+/* Check if a pixel is an obstacle */
+function isObstacle(x, y, data) {
+    if (x >= 0 && x < width && y >= 0 && y < height) {
+    	var p = 4 * y * width + 4 * x;
+    
+    	if (data[p] > 0 || data[p + 1] > 0 || data[p + 2] > 0) {
+            return true;
+        } else {
+            return false;
+        }
+    } else {
+        return false;
+    }
+}
+
+/* Remove an item from the array, and replace it with the last item in the
+ * array so it shrinks */
+function removeArrayItem(currentIndex, list) {
+    /* Pop the last item out of the array */
+    last = list.pop();           
+
+    /* Check if this item was last in the array (if currentIndex equals
+     * the new, shorter length */
+    if (currentIndex == list.length)
+        return null;
+
+    /* Not sure if this is necessary to clean up memory usage? */
+    /*list[currentIndex] = null;*/
+
+    /* Move the last item here */
+    list[currentIndex] = last;
+    
+    return last;
+}
+</script>
+</body>
+</html>
