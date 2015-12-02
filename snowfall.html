@@ -4,7 +4,7 @@
 <title>Snowfall</title>
 </head>
 <body style="margin: 0; padding: 0; background: black;">
-<canvas id="canvas" width="1270" height="710"></canvas>
+<canvas id="canvas" width="1270" height="710"  onmousedown="dragX = event.clientX" onmouseup="touch = (event.clientX - dragX) / 10"></canvas>
 <canvas id="background" width="1270" height="710" style="display: none"></canvas>
 <img id="imageBackground" src="./snowfall_background.png" style="display: none" />
 <script type="text/javascript">
@@ -22,6 +22,9 @@ var foreImg;
 var backImg;
 var backImgData;
 var foreImgData;
+
+var dragX = 0;
+var touch = 0;
 
 window.onload = function(){
 	/* Draw into the background image */
@@ -50,6 +53,8 @@ function animationTick(){
 
 	foreImgData = foreImg.data;
 	backImgData = backImg.data;
+
+	touch *= 0.95;
 	
 	/* Copy the background to the foreground every frame */
 	/*for (var i = 0; i < backImg.data.length; i++) {
@@ -65,13 +70,21 @@ function animationTick(){
             x: (Math.random() * width),
             y: 0,
 			/* velocity */
-            xVel: 0,
-            yVel: 1
+            xVel: (Math.random() * 4 - 2),
+            yVel: 1,
+			size: (Math.round(Math.random() * 2))
         };
 
         snowflakes.push(snowflake);
     }
     
+	var modifier = new Date().getSeconds();
+	modifier %=10;
+	if (5 < modifier){
+		modifier = 11 - modifier;
+	}
+	modifier -= 2.5;
+
     var i = 0;
     /* Use a while loop instead of a for loop. That is because if an item
      * needs to be removed from the list, we shuffle the last item into
@@ -80,7 +93,7 @@ function animationTick(){
         snowflake = snowflakes[i];
                 
         /* Check if the snowflake is off the edge of the page */
-        if (snowflake.y > height) {
+        if (snowflake.y > height || Math.random() < 0.0001) {
             removeArrayItem(i, snowflakes);
             continue;
         }
@@ -109,10 +122,10 @@ function animationTick(){
                  * image for this time) */
                 drawSnowflake(Math.round(snowflake.x),
                               Math.round(snowflake.y),
-                              backImg.data);
+                              backImg.data, snowflake.size);
                 drawSnowflake(Math.round(snowflake.x),
                               Math.round(snowflake.y),
-                              foreImgData);
+                              foreImgData, snowflake.size);
 
                 /* Remove the snowflake from circulation */
                 removeArrayItem(i, snowflakes);
@@ -122,13 +135,13 @@ function animationTick(){
 
         /* Animate the snowflake */
         /* First, move the xvelocity towards 0 if it has changed */
-        if (snowflake.xVel > 0.1) {
-            snowflake.xVel -= 0.1;
+        /*if (snowflake.xVel > 0.1) {
+             -= 0.1;
         } else if (snowflake.xVel < -0.1) {
             snowflake.xVel += 0.1;
         } else {
 			snowflake.xVel = 0;
-        }
+        }*/
 		
 		if (snowflake.yVel < 0.9) {
 			snowflake.yVel += 0.1;
@@ -137,15 +150,15 @@ function animationTick(){
 		}
         
         /* Then, do the actual movement */
-        snowflake.x += snowflake.xVel;
-        snowflake.y += snowflake.yVel;
+        snowflake.x += snowflake.xVel + (Math.random() * modifier + touch);
+        snowflake.y += snowflake.yVel + snowflake.size * Math.random();
 
         /* Make sure we aren't past the end of the array now if an 
         item was removed */
         if (i < snowflakes.length) {
 			drawSnowflake(Math.round(snowflake.x), 
                           Math.round(snowflake.y), 
-                          foreImgData);
+                          foreImgData, snowflake.size);
         }
             
         i++;
@@ -170,12 +183,16 @@ function drawPixel(x, y, R, G, B, A, data) {
     }
 }
 
-function drawSnowflake(x, y, data){
-    drawPixel(x, y, 255, 255, 255, 255, data);
-    drawPixel(x-1, y, 210, 210, 210, 210, data);
-    drawPixel(x+1, y, 210, 210, 210, 210, data);
-    drawPixel(x, y-1, 210, 210, 210, 210, data);
-    drawPixel(x, y+1, 210, 210, 210, 210, data);
+function drawSnowflake(x, y, data, s){
+	switch(s){
+	case 1:
+		drawPixel(x-1, y, 210, 210, 210, 210, data);
+		drawPixel(x+1, y, 210, 210, 210, 210, data);
+		drawPixel(x, y-1, 210, 210, 210, 210, data);
+		drawPixel(x, y+1, 210, 210, 210, 210, data);
+	case 0:
+		drawPixel(x, y, 255, 255, 255, 255, data);
+	}
 }
 
 /* Check if a pixel is an obstacle */
