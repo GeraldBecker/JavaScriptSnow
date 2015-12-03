@@ -78,25 +78,56 @@ function animationTick(){
         snowflakes.push(snowflake);
     }
     
-	var modifier = new Date().getSeconds();
-	modifier %=10;
-	if (5 < modifier){
-		modifier = 11 - modifier;
+	/* Set up some wind in a cycle */
+	var wind = new Date().getSeconds();
+	wind %= 10;
+	if (5 < wind){
+		wind = 11 - wind;
 	}
-	modifier -= 2.5;
+	wind -= 2.5;
 
     var i = 0;
-    /* Use a while loop instead of a for loop. That is because if an item
+    /* Loop through all the snowflakes to process each one. 
+	 * Use a while loop instead of a for loop. That is because if an item
      * needs to be removed from the list, we shuffle the last item into
      * that empty slot, and need to re-process that slot again */
     while(i < snowflakes.length) {
         snowflake = snowflakes[i];
                 
         /* Check if the snowflake is off the edge of the page */
-        if (snowflake.y > height || Math.random() < 0.0001) {
+        if (snowflake.y > height /*|| Math.random() < 0.0001*/) {
             removeArrayItem(i, snowflakes);
             continue;
         }
+		
+		/* Update the snowflake velocity */
+        /* First, move the xvelocity towards 0 if it has changed */
+        /*if (snowflake.xVel > 0.1) {
+             -= 0.1;
+        } else if (snowflake.xVel < -0.1) {
+            snowflake.xVel += 0.1;
+        } else {
+			snowflake.xVel = 0;
+        }*/
+		
+		/* If the snowflake is dropping slowly because it hit something, gradually increase
+		 * velocity towards 1 */
+		if (snowflake.yVel < 0.9) {
+			snowflake.yVel += 0.1;
+		} else {
+			/* Apply a slight amount of random variation to the vertical velocity */
+			snowflake.yVel = 1 + snowflake.size * Math.random();
+		}
+
+		/* Apply the wind */
+		var targetXVel = Math.random() * wind;
+		if (snowflake.xVel < targetXVel - 0.2)
+			snowflake.xVel += 0.2;
+		else if (snowflake.xVel > targetXVel + 0.2)
+			snowflake.xVel -= 0.2;
+		else
+			snowflake.xVel = targetXVel;
+
         
         /* Check if the snowflake is about to hit something */
         if (isObstacle(Math.round(snowflake.x + snowflake.xVel), 
@@ -104,17 +135,17 @@ function animationTick(){
                        backImgData)) {
             /* Check if we can continue moving by sliding to one side or 
              * the other */
-            if (!isObstacle(Math.round(snowflake.x - 1),
+            if (!isObstacle(Math.round(snowflake.x + snowflake.xVel - 1),
                             Math.round(snowflake.y + snowflake.yVel),
                             backImgData)) {
                 /* Start sliding left */
-                snowflake.xVel = -1;
+                snowflake.xVel -= 1;
 				snowflake.yVel = 0.5;
-            } else if (!isObstacle(Math.round(snowflake.x + 1),
-                            Math.round(snowflake.y + snowflake.yVel),
-                            backImgData)) {
+            } else if (!isObstacle(Math.round(snowflake.x + snowflake.xVel + 1),
+								   Math.round(snowflake.y + snowflake.yVel),
+								   backImgData)) {
                 /* Start sliding right */
-                snowflake.xVel = 1;
+                snowflake.xVel += 1;
 				snowflake.yVel = 0.5;
             } else {
                 /* We are stuck. Permanently draw the snowflake 
@@ -133,25 +164,10 @@ function animationTick(){
             }
         }
 
-        /* Animate the snowflake */
-        /* First, move the xvelocity towards 0 if it has changed */
-        /*if (snowflake.xVel > 0.1) {
-             -= 0.1;
-        } else if (snowflake.xVel < -0.1) {
-            snowflake.xVel += 0.1;
-        } else {
-			snowflake.xVel = 0;
-        }*/
-		
-		if (snowflake.yVel < 0.9) {
-			snowflake.yVel += 0.1;
-		} else {
-			snowflake.yVel = 1;
-		}
-        
+			
         /* Then, do the actual movement */
-        snowflake.x += snowflake.xVel + (Math.random() * modifier + touch);
-        snowflake.y += snowflake.yVel + snowflake.size * Math.random();
+        snowflake.x += snowflake.xVel;
+        snowflake.y += snowflake.yVel;
 
         /* Make sure we aren't past the end of the array now if an 
         item was removed */
