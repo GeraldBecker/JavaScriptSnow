@@ -4,7 +4,7 @@
 <title>Snowfall</title>
 </head>
 <body style="margin: 0; padding: 0; background: black;">
-<canvas id="canvas" width="1270" height="710"  onmousedown="dragX = event.clientX" onmouseup="touch = (event.clientX - dragX) / 10"></canvas>
+<canvas id="canvas" width="1270" height="710"></canvas>
 <canvas id="background" width="1270" height="710" style="display: none"></canvas>
 <img id="imageBackground" src="./snowfall_background.png" style="display: none" />
 <script type="text/javascript">
@@ -17,6 +17,7 @@ var height = ctx.canvas.height;
 
 var counter = 1;
 var snowflakes = [];
+var ongoingTouches = [];
 
 var foreImg;
 var backImg;
@@ -25,12 +26,24 @@ var foreImgData;
 
 var dragX = 0;
 var touch = 0;
+var mouseDown = false;
+var touchDown = false;
 
 window.onload = function(){
 	/* Draw into the background image */
 	var img = document.getElementById("imageBackground");
-	background.drawImage(img, 0, 0);	
-	
+	background.drawImage(img, 0, 0);
+
+	/* Add event handlers on the canvas */
+	var canvas = document.getElementById("canvas");
+	canvas.addEventListener("touchstart", handleTouchStart, false);
+	canvas.addEventListener("touchend", handleTouchEnd, false);
+	canvas.addEventListener("touchcancel", handleTouchCancel, false);
+	canvas.addEventListener("touchmove", handleTouchMove, false);
+	canvas.addEventListener("mousedown", handleMouseDown, false);
+	canvas.addEventListener("mousemove", handleMouseMove, false);
+	canvas.addEventListener("mouseup", handleMouseUp, false);
+
 	/* Make two copies of the background pixels - one to draw the
      * foreground onto, and one to make updates to the background */
     foreImg = background.getImageData(0, 0, width, height);
@@ -120,7 +133,7 @@ function animationTick(){
 		}
 
 		/* Apply the wind */
-		var targetXVel = Math.random() * wind;
+		var targetXVel = Math.random() * wind + touch;
 		if (snowflake.xVel < targetXVel - 0.2)
 			snowflake.xVel += 0.2;
 		else if (snowflake.xVel > targetXVel + 0.2)
@@ -244,6 +257,43 @@ function removeArrayItem(currentIndex, list) {
     list[currentIndex] = last;
     
     return last;
+}
+
+/* Handle touch events. Currently, they do NOT work with multi-touch! */
+function handleTouchStart(evt){
+	dragX = evt.clientX;
+	touchDown = true;
+}
+
+function handleTouchMove(evt){
+	if (touchDown) 
+		touch = (evt.clientX - dragX) / 10;
+}
+
+function handleTouchEnd(evt){
+	touch = (evt.clientX - dragX) / 10;
+	touchDown = false;
+}
+
+function handleTouchCancel(evt){
+	touch = 0;
+	touchDown = false;
+}
+
+/* Handle mouse events */
+function handleMouseDown(evt) {
+	dragX = evt.clientX;
+	mouseDown = true;
+}
+
+function handleMouseMove(evt) {
+	if (mouseDown) 
+		touch = (evt.clientX - dragX) / 10;
+}
+
+function handleMouseUp(evt) {
+	touch = (evt.clientX - dragX) / 10;
+	mouseDown = false;
 }
 </script>
 </body>
