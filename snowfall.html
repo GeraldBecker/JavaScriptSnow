@@ -11,6 +11,7 @@
 /* Initial setup of global variables */
 var ctx = document.getElementById("canvas").getContext("2d");
 var background = document.getElementById("background").getContext("2d");
+var paused = false;
 
 var width = ctx.canvas.width;
 var height = ctx.canvas.height;
@@ -58,6 +59,9 @@ window.onload = function(){
 
 /* The main animation loop */
 function animationTick(){
+	if (paused)
+		return;
+		
     /* Make two copies of the background pixels - one to draw the
      * foreground onto, and one to make updates to the background */
     foreImg = background.getImageData(0, 0, width, height);
@@ -66,7 +70,7 @@ function animationTick(){
 	foreImgData = foreImg.data;
 	backImgData = backImg.data;
 
-	touch *= 0.95;
+	touch *= 0.995;
 	
 	/* Copy the background to the foreground every frame */
 	/*for (var i = 0; i < backImg.data.length; i++) {
@@ -271,11 +275,14 @@ function removeArrayItem(currentIndex, list) {
 
 /* Handle touch events. Currently, they do NOT work with multi-touch! */
 function handleTouchStart(evt){
+	/* Pause the animation so the computer has more CPU cycles to deal with the touch event */
+	paused = true;
+	
 	evt.preventDefault();
 	var touches = evt.changedTouches;
 	for (var i = 0; i < touches.length; i++) {
 		ongoingTouches.push(copyTouch(touches[i]));
-	}
+	}	
 }
 
 function handleTouchMove(evt){
@@ -301,10 +308,19 @@ function handleTouchEnd(evt){
 		
 		/* Record a touch "swipe" - the horizontal distance to affect the wind */
 		touch = (touches[i].pageX - ongoingTouches[idx].pageX) / 10;
+		if (touch > 10)
+			touch = 10;
+		else if (touch < -10)
+			touch = -10;
+			
 		if (idx >= 0) {
 			ongoingTouches.splice(idx, 1);  // remove it; we're done
 		}
 	}
+	
+	/* Un-pause the animation if all touches are done */
+	if (ongoingTouches.length == 0)
+		paused = false;
 }
 
 function handleTouchCancel(evt){
@@ -313,6 +329,10 @@ function handleTouchCancel(evt){
 	for (var i = 0; i < touches.length; i++) {
 		ongoingTouches.splice(idx, 1);  // remove it; we're done
 	}
+	
+	/* Un-pause the animation if all touches are done */
+	if (ongoingTouches.length == 0)
+		paused = false;	
 }
 
 /* Touch helper functions */
@@ -334,6 +354,9 @@ function copyTouch(touch) {
 
 /* Handle mouse events */
 function handleMouseDown(evt) {
+	/* Pause the animation so the computer has more CPU cycles to deal with the mouse event */
+	paused = true;
+	
 	dragX = evt.clientX;
 	mouseDown = true;
 }
@@ -345,7 +368,13 @@ function handleMouseMove(evt) {
 
 function handleMouseUp(evt) {
 	touch = (evt.clientX - dragX) / 10;
+	if (touch > 10)
+		touch = 10;
+	else if (touch < -10)
+		touch = -10;
+		
 	mouseDown = false;
+	paused = false;
 }
 </script>
 </body>
