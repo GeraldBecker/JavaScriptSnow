@@ -12,6 +12,7 @@
 var ctx = document.getElementById("canvas").getContext("2d");
 var background = document.getElementById("background").getContext("2d");
 var paused = false;
+var lastTimestamp = null;
 
 var width = ctx.canvas.width;
 var height = ctx.canvas.height;
@@ -53,14 +54,29 @@ window.onload = function(){
 	backImgData = backImg.data;
 
 	/* Set the animation to run every 50 milliseconds (20 times per second) */
-	setInterval(animationTick, 50);
+	/*setInterval(animationTick, 50);*/
+	window.requestAnimationFrame(animationTick);
 }; /* End of window load event handler */
 
 
 /* The main animation loop */
-function animationTick(){
-	if (paused)
+function animationTick(timestamp){
+	if (paused) {
+		window.requestAnimationFrame(animationTick);
 		return;
+	}
+	
+	if (!lastTimestamp)
+		lastTimestamp = timestamp;
+	
+	/* If less than 50ms have passed since the last time we animated, don't do any work this time around */
+	if (timestamp - lastTimestamp < 50) {
+		window.requestAnimationFrame(animationTick);
+		return;
+	} else {
+		/* Otherwise, if we are going to do work, update the last timestamp we ran at */
+		lastTimestamp = timestamp;
+	}
 		
     /* Make two copies of the background pixels - one to draw the
      * foreground onto, and one to make updates to the background */
@@ -210,6 +226,9 @@ function animationTick(){
 	/* Write the foreground image to the main drawing canvas context */    
     ctx.putImageData(foreImg, 0, 0);
 	background.putImageData(backImg, 0, 0);
+	
+	/* Set up the next frame */
+	window.requestAnimationFrame(animationTick);
 }
 
 /* Draw a pixel in the image array */
@@ -354,9 +373,6 @@ function copyTouch(touch) {
 
 /* Handle mouse events */
 function handleMouseDown(evt) {
-	/* Pause the animation so the computer has more CPU cycles to deal with the mouse event */
-	paused = true;
-	
 	dragX = evt.clientX;
 	mouseDown = true;
 }
@@ -374,7 +390,6 @@ function handleMouseUp(evt) {
 		touch = -10;
 		
 	mouseDown = false;
-	paused = false;
 }
 </script>
 </body>
