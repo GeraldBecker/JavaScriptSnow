@@ -196,7 +196,7 @@ function animationTick(timestamp){
 		if(candles[c].light && candles[c].inRange(snowflake.x, snowflake.y)){
 			removeArrayItem(i, snowflakes);
 			b = true;
-            		break;
+            	break;
 		}
 	}
 	if(b){
@@ -498,7 +498,9 @@ function click(x, y){
 function Candle(x, y){
 
 	this.draw = function(ctx){
-
+		if (this.y >= height){
+			this.light = false;
+		}
 		if(this.light && this.y < height) {
 			this.y += Math.random() * 0.01;
 			ctx.fillStyle = 'orange';
