@@ -538,7 +538,7 @@ function Candle(x, y){
 			//ctx.moveTo(this.x + (i + candleWidth - this.y),this.y);
 			ctx.lineTo(this.x + candleWidth, this.y)
 			ctx.lineTo(this.x + candleWidth, i + candleWidth)
-		} else if (this.y < i + candleWidth / 2 &&  y > i) {
+		} else if (this.y < i + candleWidth / 2 &&  this.y > i) {
 			ctx.moveTo(this.x,this.y);
 			ctx.lineTo(this.x + (this.y * 2 -  2 * i),this.y);
 
