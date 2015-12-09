@@ -375,7 +375,8 @@ function handleTouchStart(evt){
 	var touches = evt.changedTouches;
 	for (var i = 0; i < touches.length; i++) {
 		ongoingTouches.push(copyTouch(touches[i]));
-	}	
+		click(touches[i].clientX, touches[i].clientY);
+	}
 }
 
 function handleTouchMove(evt){
@@ -449,21 +450,8 @@ function copyTouch(touch) {
 function handleMouseDown(evt) {
 	dragX = evt.clientX;
 	mouseDown = true;
-	for (var c in candles){
-		candles[c].click(evt.clientX, evt.clientY);
-	}
 
-	// 14 = "Happy Birthday".length
-	// clicking on letters
-	if(evt.clientX > 70 && evt.clientX < 14 * 60 + 70 && evt.clientY > 150 && evt.clientY < 250){
-		var i = Math.floor((evt.clientX - 70) / 60);		
-		shaking[i] = !shaking[i];
-
-	}
-	//clicking on Jason
-	if(evt.clientX > 700 && evt.clientX < 900 && evt.clientY > 250 && evt.clientY < 450){
-		jason = !jason;
-	}
+	click(evt.clientX, evt.clientY);
 }
 
 function handleMouseMove(evt) {
@@ -479,6 +467,31 @@ function handleMouseUp(evt) {
 		touch = -10;
 
 	mouseDown = false;
+}
+
+function click(x, y){
+	for (var c in candles){
+		candles[c].click(x, y);
+	}
+
+	//melt snowflake by pressing on it
+	for(var s in snowflakes){
+		if(snowflakes[s].x < x + 20 && snowflakes[s].x > x - 20 && snowflakes[s].y < y + 20 && snowflakes[s].y > y - 20){
+			removeArrayItem(s, snowflakes);
+		}
+	}
+
+	// 14 = "Happy Birthday".length
+	// clicking on letters
+	if(x > 70 && x < 14 * 60 + 70 && y > 150 && y < 250){
+		var i = Math.floor((x - 70) / 60);
+		shaking[i] = !shaking[i];
+
+	}
+	//clicking on Jason
+	if(x > 700 && x < 900 && y > 250 && y < 450){
+		jason = !jason;
+	}
 }
 
 //candleWidth
