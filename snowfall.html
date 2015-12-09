@@ -150,7 +150,6 @@ function animationTick(timestamp){
             xVel: (Math.random() * 4 - 2),
             yVel: 1,
 			size: (Math.round(Math.random() * 2)),
-		age: maxSnowFlaks / 2
         };
 
         snowflakes.push(snowflake);
@@ -181,16 +180,6 @@ function animationTick(timestamp){
             continue;
         }
 
-	   snowflake.age -= Math.random() * 2;
-	  if (0 >= snowflake.age) {
-		snowflake.size --;
-		if(0 >= snowflake.size){
-            		removeArrayItem(i, snowflakes);
-            		continue;
-		} else {
-			snowflake.age = maxSnowFlaks / 2;
-		}
-        }
 	var  b = false;
 	for (var c in candles){
 		if(candles[c].light && candles[c].inRange(snowflake.x, snowflake.y)){
