@@ -475,18 +475,24 @@ function click(x, y){
 	}
 
 	//melt snowflake by pressing on it
-	for(var s in snowflakes){
-		if(snowflakes[s].x < x + 20 && snowflakes[s].x > x - 20 && snowflakes[s].y < y + 20 && snowflakes[s].y > y - 20){
-			removeArrayItem(s, snowflakes);
-		}
-	}
+	
 
 	// 14 = "Happy Birthday".length
 	// clicking on letters
 	if(x > 70 && x < 14 * 60 + 70 && y > 150 && y < 250){
 		var i = Math.floor((x - 70) / 60);
 		shaking[i] = !shaking[i];
+		
+		//do not melt snowflake when pushing to shake letter;
+		return;
 
+	}
+	
+	//melt snowflake by pressing on it
+	for(var s in snowflakes){
+		if(snowflakes[s].x < x + 20 && snowflakes[s].x > x - 20 && snowflakes[s].y < y + 20 && snowflakes[s].y > y - 20){
+			removeArrayItem(s, snowflakes);
+		}
 	}
 	//clicking on Jason
 	if(x > 700 && x < 900 && y > 250 && y < 450){
@@ -502,7 +508,7 @@ function Candle(x, y){
 			this.light = false;
 		}
 		if(this.light && this.y < height) {
-			this.y += Math.random() * 0.01;
+			this.y += Math.random() * 0.001;
 			ctx.fillStyle = 'orange';
 			ctx.beginPath();
 			ctx.moveTo(this.x + candleWidth * 0.9,this.y - 20);
