@@ -146,6 +146,11 @@ function animationTick(timestamp){
 	foreImg = background.getImageData(0, 0, width, height);
 	foreImgData = foreImg.data;
 
+	/* If the array is full, randomly melt a snowflake */
+	if (snowflakes.length == maxSnowFlaks) {
+		var toMelt = Math.floor(Math.random() * maxSnowFlaks);
+		removeArrayItem(toMelt, snowflakes);
+	}
 	
     /* Determine if we should create a new snowflake */
     counter++;
