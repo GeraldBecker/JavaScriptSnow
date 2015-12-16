@@ -154,7 +154,8 @@ function animationTick(timestamp){
 	
     /* Determine if we should create a new snowflake */
     counter++;
-    if (counter >= 2 && snowflakes.length < maxSnowFlaks) {
+	/* Increase the number "counter" is compared to in order to create snowflakes less often */
+    if (counter >= 1 && snowflakes.length < maxSnowFlaks) {
         counter = 0;
         
         /* Create a new snowflake to add to the list */
@@ -349,24 +350,33 @@ function isObstacle(x, y, data) {
     }
 }
 
-/* Remove an item from the array, and replace it with the last item in the
- * array so it shrinks */
+/* Remove an item from the array */
 function removeArrayItem(currentIndex, list) {
+	/* When removing an item, move all the other items down by one. This
+	 * will help ensure that the oldest snowflakes are always at the beginning
+	 * of the array and get drawn first */
+	for (var i = currentIndex; i < list.length - 1; i++) {
+		list[i] = list[i + 1];
+	}
+	
+	/* Remove the last item which is now a duplicate */
+	list.pop();
+
+	/* Old method below: much faster, but doesn't keep oldest items at the beginning */
     /* Pop the last item out of the array */
-    last = list.pop();           
+    /*last = list.pop();*/
 
     /* Check if this item was last in the array (if currentIndex equals
      * the new, shorter length */
-    if (currentIndex == list.length)
-        return null;
+    /*if (currentIndex == list.length)
+        return null;*/
 
     /* Not sure if this is necessary to clean up memory usage? */
     /*list[currentIndex] = null;*/
 
     /* Move the last item here */
-    list[currentIndex] = last;
-
-    return last;
+    /*list[currentIndex] = last;*/
+	
 }
 
 
