@@ -31,7 +31,8 @@ var touch = 0;
 var mouseDown = false;
 var lastMouseX = 0;
 var lastMouseY = 0;
-var mouseColor = 'red';
+var drawColor = 'red';
+var drawSize = 6;
 
 var maxSnowFlaks = 10000;
 
@@ -374,14 +375,16 @@ function handleMouseDown(evt) {
 	
 	var backImg = background.getImageData(0, 0, width, height);
 	if (isObstacle(lastMouseX, lastMouseY, backImg.data)) {
-		mouseColor = 'black';
+		drawColor = 'black';
+		drawSize = 30;
 	} else {
-		mouseColor = 'red';
+		drawColor = 'red';
+		drawSize = 12;
 	}
 	
-    background.fillStyle = mouseColor;
+    background.fillStyle = drawColor;
 	background.beginPath();
-    background.arc(lastMouseX, lastMouseY, 6, 0, 2 * Math.PI, false);  // a circle at the start
+    background.arc(lastMouseX, lastMouseY, drawSize/2, 0, 2 * Math.PI, false);  // a circle at the start
     background.fill();
 
 	click(evt.clientX, evt.clientY);
@@ -392,9 +395,9 @@ function handleMouseMove(evt) {
 		/*touch = (evt.clientX - dragX) / 10;*/
 		
 		/* Draw a line where the mouse has moved */
-		background.strokeStyle = mouseColor;
+		background.strokeStyle = drawColor;
 		background.beginPath();
-		background.lineWidth = 12;
+		background.lineWidth = drawSize;
 		background.moveTo(lastMouseX, lastMouseY);
 		
 		lastMouseX = evt.clientX;
@@ -404,9 +407,9 @@ function handleMouseMove(evt) {
 		background.stroke();
 
 		/* Draw a circle at the end of the line */
-		background.fillStyle = mouseColor;
+		background.fillStyle = drawColor;
 		background.beginPath();
-		background.arc(lastMouseX, lastMouseY, 6, 0, 2 * Math.PI, false);  // a circle at the start
+		background.arc(lastMouseX, lastMouseY, drawSize/2, 0, 2 * Math.PI, false);  // a circle at the start
 		background.fill();
 	}
 }
