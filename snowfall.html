@@ -332,8 +332,12 @@ function drawSnowflake(x, y, data, s){
 		drawPixel(x, y-1, 210, 210, 210, 210, data);
 		drawPixel(x, y+1, 210, 210, 210, 210, data);
 	case 0:
-		drawPixel(x, y, 255, 255, 255, 255, data);
+		drawPixel(x-1, y-1, 210, 210, 210, 210, data);
+		drawPixel(x+1, y-1, 210, 210, 210, 210, data);
+		drawPixel(x-1, y+1, 210, 210, 210, 210, data);
+		drawPixel(x+1, y+1, 210, 210, 210, 210, data);
 	}
+	drawPixel(x, y, 255, 255, 255, 255, data);
 }
 
 /* Check if a pixel is an obstacle */
