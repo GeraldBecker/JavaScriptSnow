@@ -165,7 +165,7 @@ function animationTick(timestamp){
 			/* velocity */
             xVel: (Math.random() * 4 - 2),
             yVel: 1,
-			size: (Math.round(Math.random() * 2)),
+			size: (Math.floor(Math.random() * 2)),
         };
 
         snowflakes.push(snowflake);
@@ -327,15 +327,17 @@ function drawPixel(x, y, R, G, B, A, data) {
 function drawSnowflake(x, y, data, s){
 	switch(s){
 	case 1:
-		drawPixel(x-1, y, 210, 210, 210, 210, data);
-		drawPixel(x+1, y, 210, 210, 210, 210, data);
-		drawPixel(x, y-1, 210, 210, 210, 210, data);
-		drawPixel(x, y+1, 210, 210, 210, 210, data);
-	case 0:
 		drawPixel(x-1, y-1, 210, 210, 210, 210, data);
 		drawPixel(x+1, y-1, 210, 210, 210, 210, data);
 		drawPixel(x-1, y+1, 210, 210, 210, 210, data);
 		drawPixel(x+1, y+1, 210, 210, 210, 210, data);
+		break;
+	case 0:
+		drawPixel(x-1, y, 190, 190, 190, 190, data);
+		drawPixel(x+1, y, 190, 190, 190, 190, data);
+		drawPixel(x, y-1, 190, 190, 190, 190, data);
+		drawPixel(x, y+1, 190, 190, 190, 190, data);
+		break;
 	}
 	drawPixel(x, y, 255, 255, 255, 255, data);
 }
