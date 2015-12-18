@@ -2,9 +2,32 @@
 <html>
 <head>
 <title>Snowfall</title>
+<script src='http://code.jquery.com/jquery-1.11.3.min.js'></script>
 </head>
+<style>
+.palette{
+	position:fixed;
+	height:100%;
+	top:0;
+	height:710px;
+	width:50px;
+}
+.colour{
+	height:50px;
+	width:50px;
+}
+
+.selected{
+	margin-left: -20px;
+}
+
+#c_black{
+	border:1px white solid;
+}
+</style>
 <body style="margin: 0; padding: 0; background: black;">
 <canvas id="canvas" width="1270" height="710"></canvas>
+<div class='palette'></div>
 <canvas id="background" width="1270" height="710" style="display: none"></canvas>
 <!--<img id="imageBackground" src="./cake.png" style="display: none" />-->
 <div id="log"></div>
@@ -36,8 +59,18 @@ var drawSize = 6;
 
 var maxSnowFlaks = 15000;
 
+var colours = ["black", "red", "yellow", "blue", "green"];
+
 
 window.onload = function(){
+
+	/* Create the colour palette*/
+	for(c in colours){
+		$(".palette").append("<div id='c_" + colours[c] +"' class='colour' onclick='toColour(\"" + colours[c] + "\")' style='background-color:" + colours[c] +"'></div>");
+		var element = document.getElementById("c_" + colours[c]);
+		element.addEventListener("mousedown", function(){toColour(colours[c])}, false);
+	}
+	
 
 	/* Add event handlers on the canvas */
 	var canvas = document.getElementById("canvas");
@@ -315,6 +348,13 @@ function isObstacle(x, y, data) {
     }
 }
 
+function toColour(c){
+	drawColor = c;
+	$(".selected").removeClass("selected");
+	$("#c_" + c).addClass("selected");
+	
+}
+
 /* Remove an item from the array */
 function removeArrayItem(currentIndex, list) {
 	/* When removing an item, move all the other items down by one. This
@@ -354,20 +394,11 @@ function handleMouseDown(evt) {
 	lastMouseY = evt.clientY;
 	
 	var backImg = background.getImageData(0, 0, width, height);
-	if (isObstacle(lastMouseX, lastMouseY, backImg.data)) {
-		drawColor = 'black';
-		drawSize = 30;
-	} else {
-		drawColor = 'red';
-		drawSize = 12;
-	}
 	
     background.fillStyle = drawColor;
 	background.beginPath();
     background.arc(lastMouseX, lastMouseY, drawSize/2, 0, 2 * Math.PI, false);  // a circle at the start
     background.fill();
-
-	click(evt.clientX, evt.clientY);
 }
 
 function handleMouseMove(evt) {
