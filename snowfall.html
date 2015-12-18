@@ -34,24 +34,13 @@ var lastMouseY = 0;
 var drawColor = 'red';
 var drawSize = 6;
 
-var maxSnowFlaks = 10000;
+var maxSnowFlaks = 15000;
 
-var candleWidth = 20;
-var shaking = [];
-var candles = [];
-var jason = false;
-/*for (var i = 0; width > i; i += 50 ){
-	candles.push(new Candle(i, 550 + Math.random() * 100));
-}*/
 
 window.onload = function(){
 
 	/* Add event handlers on the canvas */
 	var canvas = document.getElementById("canvas");
-	canvas.addEventListener("touchstart", handleTouchStart, false);
-	canvas.addEventListener("touchend", handleTouchEnd, false);
-	canvas.addEventListener("touchcancel", handleTouchCancel, false);
-	canvas.addEventListener("touchmove", handleTouchMove, false);
 	canvas.addEventListener("mousedown", handleMouseDown, false);
 	canvas.addEventListener("mousemove", handleMouseMove, false);
 	canvas.addEventListener("mouseup", handleMouseUp, false);
@@ -96,51 +85,6 @@ function animationTick(timestamp){
 	/*var backImg = background.getImageData(0, 0, width, height);
 	ctx.drawImage(backImg, 0, 0);*/
 
-	/* Add candles	
-	for (var c in candles){
-		candles[c].draw(ctx);
-	}*/
-	
-	/* Happy Birthday message
-	ctx.fillStyle = "red";
-	ctx.textAlign = "center";
-	var s = 'Happy Birthday';
-	text_counter += Math.random() * 5
-	if ( 200 < text_counter){
-		text_counter = 0;
-	}
-	ctx.fillStyle = "red";
-	ctx.font = "100px Comic Sans MS";
-	
-	for (var i in s){
-		var m = (parseInt(i) + 1) / 2;
-		if(shaking[i]){
-		 m = 30;
-		}
-		ctx.fillText(s.charAt(i) ,Math.random() * m - m / 2 + 100 + i * 60, Math.random() * m - m / 2 +  250)
-	}
-	*/
-
-	/* Jason message
-	ctx.font = text_counter + "px Comic Sans MS";
-	if(jason){
-		var r = 255 * Math.random()|0,
-		g = 255 * Math.random()|0,
-		b = 255 * Math.random()|0;
-		ctx.fillStyle = 'rgb(' + r + ',' + g + ',' + b + ')';
-		
-		
-		ctx.save();
-		ctx.translate( 800, 450);
- 		ctx.rotate(Math.PI* 2 * Math.random());
-		ctx.fillText('Jason!' , 0, 0);
-		ctx.restore();
-	} else {
-		ctx.fillText('Jason!' , 800, 450);
-	}
-	ctx.fillStyle = "white";
-	ctx.fillRect(350, 1200, 5, 5);
-	*/
 	
 	/* Pull out the pixels that are currently in the canvas, and manipulate the pixel level */
 	foreImg = background.getImageData(0, 0, width, height);
@@ -199,19 +143,6 @@ function animationTick(timestamp){
             continue;
         }
 
-		/* Make snowflakes melt if they get too close to a candle
-		var  b = false;
-		for (var c in candles){
-			if(candles[c].light && candles[c].inRange(snowflake.x, snowflake.y)){
-				removeArrayItem(i, snowflakes);
-				b = true;
-				break;
-			}
-		}
-		if(b){
-			continue;
-		} */
-
 		/* Update the snowflake velocity */
 		
 		/* If the snowflake is dropping slowly because it hit something, gradually increase
@@ -235,9 +166,10 @@ function animationTick(timestamp){
         
         /* Check if the snowflake is about to hit something */
 		var isStuck = false;
-        if (isObstacle(Math.round(snowflake.x + snowflake.xVel), 
-                       Math.round(snowflake.y + snowflake.yVel), 
-                       foreImgData)) {
+        if (checkSnowflakeCollision(Math.round(snowflake.x + snowflake.xVel), 
+									Math.round(snowflake.y + snowflake.yVel), 
+									snowflake.size,
+									foreImgData)) {
 			isStuck = true;
             
 			/* Check if we can continue moving by changing direction within reasonable limits */
@@ -250,9 +182,10 @@ function animationTick(timestamp){
 			
 			/* Loop through the possible new directions we could go and check for obstacles */
 			for (var dir = min; dir <= max; dir++) {
-				if (!isObstacle(Math.round(snowflake.x + dir),
-								Math.round(snowflake.y + snowflake.yVel),
-								foreImgData)) {
+				if (!checkSnowflakeCollision(Math.round(snowflake.x + dir),
+											Math.round(snowflake.y + snowflake.yVel),
+											snowflake.size,
+											foreImgData)) {
 					/* Change to the new direction */
 					snowflake.xVel = dir;
 					isStuck = false;
@@ -340,6 +273,32 @@ function drawSnowflake(x, y, data, s){
 		break;
 	}
 	drawPixel(x, y, 255, 255, 255, 255, data);
+}
+
+/* Check if a snowflake is bumping into something. The "s" refers to the size or style
+   of snowflake - each one has to have slightly different collision detection */
+function checkSnowflakeCollision(x, y, s, data) {
+	/* Check the middle point */
+	if (isObstacle(x, y, data)) {
+		return true;
+	}
+	
+	/* Check some other points, based on the type of snowflake */
+	if (s == 1) {
+		if (isObstacle(x-1, y+1, data) ||
+			isObstacle(x+1, y+1, data)) {
+			return true;
+		}
+	} else if (s == 0) {
+		if (isObstacle(x-1, y, data) ||
+			isObstacle(x+1, y, data) ||
+			isObstacle(x, y+1, data)) {
+			return true;
+		}	
+	}
+	
+	/* If we've gotten this far, there was no collision */
+	return false;
 }
 
 /* Check if a pixel is an obstacle */
@@ -445,198 +404,6 @@ function handleMouseUp(evt) {
 	mouseDown = false;
 }
 
-function click(x, y){
-	/*for (var c in candles){
-		candles[c].click(x, y);
-	}*/
-	
-	/*
-	// 14 = "Happy Birthday".length
-	// clicking on letters
-	if(x > 70 && x < 14 * 60 + 70 && y > 150 && y < 250){
-		var i = Math.floor((x - 70) / 60);
-		shaking[i] = !shaking[i];
-		
-		//do not melt snowflake when pushing to shake letter;
-		return;
-
-	}
-	*/
-	
-	/*
-	//melt snowflake by pressing on it
-	for(var s in snowflakes){
-		if(snowflakes[s].x < x + 20 && snowflakes[s].x > x - 20 && snowflakes[s].y < y + 20 && snowflakes[s].y > y - 20){
-			removeArrayItem(s, snowflakes);
-		}
-	}
-	*/
-	/*
-	//clicking on Jason
-	if(x > 700 && x < 900 && y > 250 && y < 450){
-		jason = !jason;
-	}
-	*/
-}
-
-//candleWidth
-function Candle(x, y){
-
-	this.draw = function(ctx){
-		if (this.y >= height){
-			this.light = false;
-		}
-		if(this.light && this.y < height) {
-			this.y += Math.random() * 0.001;
-			ctx.fillStyle = 'orange';
-			ctx.beginPath();
-			ctx.moveTo(this.x + candleWidth * 0.9,this.y - 20);
-			ctx.lineTo(this.x + Math.random() * candleWidth * 2 - candleWidth * 0.5, this.y - 70 + Math.random() * 20);
-			ctx.lineTo(this.x + candleWidth *  0.1, this.y - 20)
-			ctx.fill();
-
-			ctx.fillStyle = 'yellow';
-			ctx.beginPath();
-			ctx.moveTo(this.x + candleWidth * 0.9,this.y - 20);
-			ctx.lineTo(this.x + Math.random() * candleWidth, this.y - 70 + Math.random() * 20);
-			ctx.lineTo(this.x + candleWidth *  0.1, this.y - 20)
-		    	ctx.fill();				
-
-			ctx.beginPath();
-	   		ctx.arc(this.x + candleWidth / 2, this.y - 20, candleWidth * 0.4,0,Math.PI*2,true);
-			ctx.fill();
-		}
-
-		ctx.fillStyle = 'blue';
-		ctx.fillRect(this.x, this.y, candleWidth, height - y);
-		ctx.fillStyle = 'white';
-		for (var i = height; this.y < i; i -= candleWidth * 2){
-		//for (var i = this.y; height > i; i += candleWidth * 2){
-			ctx.beginPath();
-    			ctx.moveTo(this.x,i);
-			ctx.lineTo(this.x + candleWidth, i + candleWidth / 2);
-			ctx.lineTo(this.x + candleWidth, i + candleWidth)
-			ctx.lineTo(this.x, i + candleWidth / 2);
-		    	ctx.fill();
-		}
-		ctx.beginPath();
-		if (this.y < i + candleWidth && this.y > i + candleWidth / 2){
-			ctx.moveTo(this.x + (this.y * 2 -  2 * i - candleWidth),this.y);
-			//ctx.moveTo(this.x + (i + candleWidth - this.y),this.y);
-			ctx.lineTo(this.x + candleWidth, this.y)
-			ctx.lineTo(this.x + candleWidth, i + candleWidth)
-		} else if (this.y < i + candleWidth / 2 &&  this.y > i) {
-			ctx.moveTo(this.x,this.y);
-			ctx.lineTo(this.x + (this.y * 2 -  2 * i),this.y);
-
-
-			ctx.lineTo(this.x + candleWidth, i + candleWidth / 2);
-			ctx.lineTo(this.x + candleWidth, i + candleWidth)
-			ctx.lineTo(this.x, i + candleWidth / 2);
-		} 
-		ctx.fill();
-		
-	}
-
-	this.click = function(x, y){
-		if(y > this.y - 70 && x > this.x && x < this.x + candleWidth){
-			this.light = !this.light;
-		}
-	}
-
-	this.inRange = function(x, y){
-		return 100 > Math.sqrt((this.x + candleWidth / 2 - x) * (this.x + candleWidth / 2 - x) +
-			 (this.y - 20 - y) * (this.y - 20 - y));
-	}
-
-
-	this.x = x;
-	this.y = y;
-	this.light = true;
-	
-}
-
-
-
-
-/* Handle touch events. Currently, they do NOT work with multi-touch! */
-function handleTouchStart(evt){
-	/* Pause the animation so the computer has more CPU cycles to deal with the touch event */
-	paused = true;
-	
-	evt.preventDefault();
-	var touches = evt.changedTouches;
-	for (var i = 0; i < touches.length; i++) {
-		ongoingTouches.push(copyTouch(touches[i]));
-		click(touches[i].clientX, touches[i].clientY);
-	}
-}
-
-function handleTouchMove(evt){
-	evt.preventDefault();
-	/*
-	Wait till event is done to do anything
-	
-	var touches = evt.changedTouches;
-	for (var i = 0; i < touches.length; i++) {
-		var idx = ongoingTouchIndexById(touches[i].identifier);
-
-		if (idx >= 0) {
-			ongoingTouches.splice(idx, 1, copyTouch(touches[i]));  // swap in the new touch record
-		}
-	}*/
-}
-
-function handleTouchEnd(evt){
-	evt.preventDefault();
-	var touches = evt.changedTouches;
-	for (var i = 0; i < touches.length; i++) {
-		var idx = ongoingTouchIndexById(touches[i].identifier);
-		
-		/* Record a touch "swipe" - the horizontal distance to affect the wind */
-		touch = (touches[i].pageX - ongoingTouches[idx].pageX) / 10;
-		if (touch > 10)
-			touch = 10;
-		else if (touch < -10)
-			touch = -10;
-			
-		if (idx >= 0) {
-			ongoingTouches.splice(idx, 1);  // remove it; we're done
-		}
-	}
-	
-	/* Un-pause the animation if all touches are done */
-	if (ongoingTouches.length == 0)
-		paused = false;
-}
-
-function handleTouchCancel(evt){
-	evt.preventDefault();
-	var touches = evt.changedTouches;
-	for (var i = 0; i < touches.length; i++) {
-		ongoingTouches.splice(idx, 1);  // remove it; we're done
-	}
-	
-	/* Un-pause the animation if all touches are done */
-	if (ongoingTouches.length == 0)
-		paused = false;	
-}
-
-/* Touch helper functions */
-function ongoingTouchIndexById(idToFind) {
-	for (var i = 0; i < ongoingTouches.length; i++) {
-		var id = ongoingTouches[i].identifier;
-
-		if (id == idToFind) {
-			return i;
-		}
-	}
-	return -1;    // not found
-}
-
-function copyTouch(touch) {
-  return { identifier: touch.identifier, pageX: touch.pageX, pageY: touch.pageY };
-}
 
 </script>
 </body>
