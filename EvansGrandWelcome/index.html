@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Snowfall</title>
+<script src='http://code.jquery.com/jquery-1.11.3.min.js'></script>
+</head>
+<style>
+.palette{
+    position:fixed;
+    height:100%;
+    top:0;
+    height:710px;
+    width:50px;
+}
+.colour{
+    height:50px;
+    width:50px;
+}
+
+.selected{
+    margin-left: -20px;
+}
+
+#c_black{
+    border:1px white solid;
+}
+</style>
+<body style="margin: 0; padding: 0; background: black;">
+<canvas id="canvas" width="1270" height="710"></canvas>
+<div class='palette'></div>
+<canvas id="background" width="1270" height="710" style="display: none"></canvas>
+<!--<img id="imageBackground" src="./cake.png" style="display: none" />-->
+<img id="imageBackground" src="./tree.png" style="display: none;" />
+<img id="arrowRight" src="./arrowright.png" style="display: none;" />
+<img id="arrowLeft" src="./arrowleft.png" style="display: none;" />
+<img id="arrowLeftMag" src="./arrowleftmag.png" style="display: none;" />
+<img id="arrowRightMag" src="./arrowrightmag.png" style="display: none;" />
+<img id="blueLight" src="./bluelight.png" style="display: none;" />
+<img id="greenLight" src="./greenlight.png" style="display: none;" />
+<img id="yellowLight" src="./yellowlight.png" style="display: none;" />
+<img id="redLight" src="./redlight.png" style="display: none;" />
+<img id="starBright" src="./starbright.png" style="display: none;" />
+<img id="starMed" src="./starmed.png" style="display: none;" />
+
+
+
+<div id="log"></div>
+<script type="text/javascript">
+/* Initial setup of global variables */
+var ctx = document.getElementById("canvas").getContext("2d");
+var background = document.getElementById("background").getContext("2d");
+var paused = false;
+var lastTimestamp = null;
+
+var width = ctx.canvas.width;
+var height = ctx.canvas.height;
+
+var counter = 1;
+var text_counter = 1;
+var snowflakes = [];
+var ongoingTouches = [];
+
+var foreImg;
+var foreImgData;
+
+var dragX = 0;
+var touch = 0;
+var mouseDown = false;
+var lastMouseX = 0;
+var lastMouseY = 0;
+var drawColor = 'red';
+var drawSize = 6;
+
+var maxSnowFlaks = 15000;
+
+var colours = ["black", "red", "yellow", "blue", "green"];
+
+var icount = 0;
+var lightMode = 0;
+
+window.onload = function(){
+
+    /* Create the colour palette*/
+    /*for(c in colours){
+        $(".palette").append("<div id='c_" + colours[c] +"' class='colour' onclick='toColour(\"" + colours[c] + "\")' style='background-color:" + colours[c] +"'></div>");
+        var element = document.getElementById("c_" + colours[c]);
+        element.addEventListener("mousedown", function(){toColour(colours[c])}, false);
+    }*/
+    
+
+    /* Add event handlers on the canvas */
+    var canvas = document.getElementById("canvas");
+    canvas.addEventListener("mousedown", handleMouseDown, false);
+    canvas.addEventListener("mousemove", handleMouseMove, false);
+    canvas.addEventListener("mouseup", handleMouseUp, false);
+
+    /* Fill the background with black to start */
+    background.fillStyle = 'black';
+    background.fillRect(0, 0, width, height);
+    
+    /* Make two copies of the background pixels - one to draw the
+     * foreground onto, and one to make updates to the background */
+    foreImg = ctx.getImageData(0, 0, width, height);    
+    foreImgData = foreImg.data;
+
+    /* Set the animation to run every 50 milliseconds (20 times per second) */
+    /*setInterval(animationTick, 50);*/
+    window.requestAnimationFrame(animationTick);
+}; /* End of window load event handler */
+
+
+/* The main animation loop */
+function animationTick(timestamp){
+
+    if (paused) {
+        window.requestAnimationFrame(animationTick);
+        return;
+    }
+    
+    if (!lastTimestamp)
+        lastTimestamp = timestamp;
+    
+    /* If less than 50ms have passed since the last time we animated, don't do any work this time around */
+    if (timestamp - lastTimestamp < 500) {
+        window.requestAnimationFrame(animationTick);
+        return;
+    } else {
+        /* Otherwise, if we are going to do work, update the last timestamp we ran at */
+        lastTimestamp = timestamp;
+    }
+    //ctx.clearRect(0, 0, canvas.width, canvas.height); //dont need this
+    
+    
+    if(icount==1) {
+        //alert("ha");
+        
+    }
+    /* Draw the background image into the canvas first */
+    var img = document.getElementById("imageBackground");
+    /*var backImg = background.getImageData(0, 0, width, height);*/
+    ctx.drawImage(img, 0, 0);
+
+    
+    
+    if(icount % 2 == 0) {
+        var img = document.getElementById("arrowRight");
+        ctx.drawImage(img, 40, 400);
+        
+        var img = document.getElementById("arrowLeft");
+        ctx.drawImage(img, 840, 400);
+    }
+    
+    if(icount % 2 == 1) {
+        var img = document.getElementById("arrowRightMag");
+        ctx.drawImage(img, 40, 400);
+        
+        var img = document.getElementById("arrowLeftMag");
+        ctx.drawImage(img, 840, 400);
+        
+    }
+    
+    //lights
+    if(icount % 5 == 0) {
+        /*lightMode = lightMode == 0 ? 1 : 0;*/
+        
+        if(lightMode == 0) {
+            lightMode++;
+        } else if(lightMode == 1) {
+            lightMode++;
+        } else if(lightMode == 2) {
+            lightMode++;
+        } else {
+            lightMode = 0;
+        }
+    }
+    
+    //ctx.drawImage(img, 560, 130); //top of tree
+    
+    var img1;
+    var img2;
+    var img3;
+    var img4;
+    var star;
+    
+    
+    
+    if(lightMode == 0) {
+        img1 = document.getElementById("blueLight");
+        img2 = document.getElementById("redLight");
+        img3 = document.getElementById("greenLight");
+        img4 = document.getElementById("yellowLight");
+        star = document.getElementById("starBright");
+        
+    } else if(lightMode == 1) {
+        img1 = document.getElementById("redLight");
+        img2 = document.getElementById("greenLight");
+        img3 = document.getElementById("yellowLight");
+        img4 = document.getElementById("blueLight");
+        star = document.getElementById("starMed");
+    } else if(lightMode == 2) {
+        img1 = document.getElementById("greenLight");
+        img2 = document.getElementById("yellowLight");
+        img3 = document.getElementById("blueLight");
+        img4 = document.getElementById("redLight");
+        star = document.getElementById("starBright");
+    } else if(lightMode == 3) {
+        img1 = document.getElementById("yellowLight");
+        img2 = document.getElementById("blueLight");
+        img3 = document.getElementById("redLight");
+        img4 = document.getElementById("greenLight");
+        star = document.getElementById("starMed");
+    }
+        
+    
+    ctx.drawImage(img1, 530, 200); //
+    ctx.drawImage(img1, 580, 340); //
+    ctx.drawImage(img1, 600, 450); //
+    ctx.drawImage(img1, 520, 490); //
+    ctx.drawImage(img1, 680, 530); //
+    
+    ctx.drawImage(img2, 575, 230); //
+    ctx.drawImage(img2, 630, 350); //
+    ctx.drawImage(img2, 650, 460); //
+    ctx.drawImage(img2, 565, 500); //
+    
+    
+    ctx.drawImage(img3, 630, 270); //
+    ctx.drawImage(img3, 500, 420); //
+    ctx.drawImage(img3, 600, 510); //
+    
+    ctx.drawImage(img4, 530, 320); //
+    ctx.drawImage(img4, 550, 440); //
+    ctx.drawImage(img4, 480, 480); //
+    ctx.drawImage(img4, 640, 520); //
+        
+      
+    
+    
+    ctx.drawImage(star, 545, 120);
+    
+    
+    //just some rectangle that no one cares about
+    ctx.fillStyle = "#FF0000";
+    //ctx.fillRect(545,120,60,60);
+    
+    icount++;
+    
+
+    /* Write the foreground image to the main drawing canvas context */    
+    //ctx.putImageData(foreImg, 0, 0); //TODO
+
+
+
+    /* Set up the next frame */
+    window.requestAnimationFrame(animationTick);
+}
+
+
+function toColour(c){
+    drawColor = c;
+    $(".selected").removeClass("selected");
+    $("#c_" + c).addClass("selected");
+    
+}
+
+
+
+
+
+/* Handle mouse events */
+function handleMouseDown(evt) {
+    dragX = evt.clientX;
+    mouseDown = true;
+    lastMouseX = evt.clientX;
+    lastMouseY = evt.clientY;
+    
+    var backImg = background.getImageData(0, 0, width, height);
+    
+    background.fillStyle = drawColor;
+    background.beginPath();
+    background.arc(lastMouseX, lastMouseY, drawSize/2, 0, 2 * Math.PI, false);  // a circle at the start
+    background.fill();
+}
+
+function handleMouseMove(evt) {
+    if (mouseDown) {
+        /*touch = (evt.clientX - dragX) / 10;*/
+        
+        /* Draw a line where the mouse has moved */
+        background.strokeStyle = drawColor;
+        background.beginPath();
+        background.lineWidth = drawSize;
+        background.moveTo(lastMouseX, lastMouseY);
+        
+        lastMouseX = evt.clientX;
+        lastMouseY = evt.clientY;
+        
+        background.lineTo(lastMouseX, lastMouseY);
+        background.stroke();
+
+        /* Draw a circle at the end of the line */
+        background.fillStyle = drawColor;
+        background.beginPath();
+        background.arc(lastMouseX, lastMouseY, drawSize/2, 0, 2 * Math.PI, false);  // a circle at the start
+        background.fill();
+    }
+}
+
+function handleMouseUp(evt) {
+    /*touch = (evt.clientX - dragX) / 10;*/
+    if (touch > 10)
+        touch = 10;
+    else if (touch < -10)
+        touch = -10;
+
+    mouseDown = false;
+}
+
+
+</script>
+</body>
+</html>
